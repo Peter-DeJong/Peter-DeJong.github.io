@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Wave Simulation</title>
+    <link rel="stylesheet" type="text/css" href="WaveDemoStylesheet.css"/>
+
+    <script type="text/javascript">
+        const color1 = "#FFE400", color2 = "#14A76C", color3 = "#FF652F";
+
+        var frequency1, frequency2;
+        var amplitude1, amplitude2;
+        var offset1, offset2;
+        var width, height;
+        var previousTime = 0;
+        var totalTime = 0;
+        var animate = true;
+
+        var ctx;
+
+        function init() {
+            ctx = document.getElementById("canvas").getContext("2d");
+
+            previousTime = Date.now();
+            window.requestAnimationFrame(draw);
+        }
+
+        function draw() {
+            var now = Date.now();
+            totalTime += (now - previousTime) / 1000;
+            previousTime = now;
+
+            width = ctx.canvas.width;
+            height = ctx.canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+            showAxes();
+            plotSine(document.getElementById("velocity").value * totalTime);
+
+            if (animate) {
+                window.requestAnimationFrame(draw);
+            }
+        }
+
+        function plotSine(xOffset) {
+            frequency1 = document.getElementById("slider1").value;
+            frequency2 = document.getElementById("slider2").value;
+            amplitude1 = document.getElementById("slider3").value;
+            amplitude2 = document.getElementById("slider4").value;
+            offset1 = xOffset;
+            offset2 = -xOffset;
+            ctx.lineWidth = 2;
+
+            wave1();
+            wave2();
+            wave3();
+        }
+
+        function wave1() {
+            var x = 0;
+            ctx.beginPath();
+            ctx.strokeStyle = color1;
+
+            var end = Math.min(offset1, width);
+            while (x < end) {
+                var y = height / 2 + amplitude1 * Math.sin((x + offset1) / frequency1);
+                ctx.lineTo(x, y);
+                x++;
+            }
+            ctx.stroke();
+        }
+
+        function wave2() {
+            var x = width;
+            ctx.beginPath();
+            ctx.strokeStyle = color2;
+
+            var end = Math.max(width + offset2, 0);
+            while (x > end) {
+                var y = height / 2 + amplitude2 * Math.sin((x + offset2) / frequency2);
+                ctx.lineTo(x, y);
+                x--;
+            }
+            ctx.stroke();
+        }
+
+        function wave3() {
+            var x = Math.max(width + offset2, 0);
+            ctx.beginPath();
+            ctx.strokeStyle = color3;
+
+            var end = Math.min(offset1, width);
+            while (x < end) {
+                var y1 = height / 2 + amplitude1 * Math.sin((x + offset1) / frequency1);
+                var y2 = height / 2 + amplitude2 * Math.sin((x + offset2) / frequency2);
+                ctx.lineTo(x, y1 + y2 - (height / 2));
+                x++;
+            }
+            ctx.stroke();
+        }
+
+        function showAxes() {
+            ctx.fillStyle = "#747474";
+            ctx.font = "100 14pt Segoe UI";
+
+            ctx.textAlign = "start";
+            ctx.fillText("t = " + totalTime.toFixed(3) + " s", 10, 22);
+            ctx.textAlign = "end";
+            ctx.fillText("(" + width + ", " + (height / 2) + ")", width - 10, 22);
+
+            ctx.fillStyle = color1;
+            ctx.fillRect(width - 20, height - 62, 10, 10);
+            ctx.fillText("Wave 1 = ", width - 20, height - 53);
+
+            ctx.fillStyle = color2;
+            ctx.fillRect(width - 20, height - 42, 10, 10);
+            ctx.fillText("Wave 2 = ", width - 20, height - 33);
+
+            ctx.fillStyle = color3;
+            ctx.fillRect(width - 20, height - 22, 10, 10);
+            ctx.fillText("Superposition = ", width - 20, height - 13);
+
+            //-------------------------------------------------------------------------//
+
+            ctx.beginPath();
+            ctx.strokeStyle = "#747474";
+
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, height);
+            ctx.lineTo(width, height);
+            ctx.lineTo(width, 0);
+            ctx.lineTo(0, 0);
+
+            ctx.stroke();
+        }
+
+        function reset() {
+            previousTime = Date.now();
+            totalTime = 0;
+            if (!animate) {
+                animate = true;
+                window.requestAnimationFrame(draw);
+            }
+        }
+
+        function onClick(event) {
+            if (isMouseClick(event)) {
+                animate = !animate;
+                if (animate) {
+                    previousTime = Date.now();
+                    window.requestAnimationFrame(draw);
+                }
+            }
+        }
+
+        function isMouseClick(evt) {
+            evt = evt || window.event;
+            if ("buttons" in evt) {
+                return evt.buttons == 1;
+            }
+            var button = evt.which || evt.button;
+            return button == 1;
+        }
+    </script>
+</head>
+
+<body onload="init()" style="background-color:#272727">
+    <div style="width: 100%; text-align:center">
+        <p style="font-size: 54px; margin: 8px 0px 0px 0px">Wave Simulation</p>
+
+        <table style="display: inline" cellspacing="16">
+            <tr>
+                <td>
+                    <label for="frequencyId1">Frequency 1:</label>
+                    <input id="frequencyId1" type="number" min="10" max="100" value="10" oninput="slider1.value = this.value"
+                           onchange="this.value = Math.min(Math.max(this.value, this.min), this.max)">
+                </td>
+                <td>
+                    <label for="frequencyId2">Frequency 2:</label>
+                    <input id="frequencyId2" type="number" min="10" max="100" value="10" oninput="slider2.value = this.value"
+                           onchange="this.value = Math.min(Math.max(this.value, this.min), this.max)">
+                </td>
+                <td>
+                    <label for="amplitudeId1">Amplitude 1:</label>
+                    <input id="amplitudeId1" type="number" min="10" max="100" value="60" oninput="slider3.value = this.value"
+                           onchange="this.value = Math.min(Math.max(this.value, this.min), this.max)">
+                </td>
+                <td>
+                    <label for="amplitudeId2">Amplitude 2:</label>
+                    <input id="amplitudeId2" type="number" min="10" max="100" value="60" oninput="slider4.value = this.value"
+                           onchange="this.value = Math.min(Math.max(this.value, this.min), this.max)">
+                </td>
+                <td>
+                    <label for="velocityId">Velocity:</label>
+                    <input id="velocityId" type="number" min="10" max="200" value="50" oninput="velocity.value = this.value"
+                           onchange="this.value = Math.min(Math.max(this.value, this.min), this.max)">
+                </td>
+            </tr>
+            <tr>
+                <td><input id="slider1" class="slider" type="range" min="10" max="100" value="10" oninput="frequencyId1.value = this.value"></td>
+                <td><input id="slider2" class="slider" type="range" min="10" max="100" value="10" oninput="frequencyId2.value = this.value"></td>
+                <td><input id="slider3" class="slider" type="range" min="10" max="100" value="60" oninput="amplitudeId1.value = this.value"></td>
+                <td><input id="slider4" class="slider" type="range" min="10" max="100" value="60" oninput="amplitudeId2.value = this.value"></td>
+                <td><input id="velocity" class="slider" type="range" min="10" max="200" value="50" oninput="velocityId.value = this.value"></td>
+            </tr>
+        </table>
+
+        <input type="button" class="button" value="Reset" onclick="reset()">
+    </div>
+
+    <div style="width: 100%; text-align: center">
+        <canvas id="canvas" width="750" height="525" onmousedown="onClick(event)" style="display: inline" />
+    </div>
+    <div style="width: 100%; text-align: center">
+        <span style="font-size: 20px">Peter De Jong made this :)</span>
+    </div>
+</body>
+</html>
