@@ -1,2 +1,2 @@
 # Peter-DeJong.github.io
-Physics Wave Simulation
+https://peter-dejong.github.io/wave_simulation/
